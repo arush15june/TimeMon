@@ -13,7 +13,7 @@ I aim to implement this functionality by monitoring wall-clock time across a clu
 ## Objectives
 
 - Implement a transport-agnostic library to monitor wall-clock time across a process group using a leader-follower algorithm. This would allow users to implement applications dependent upon synchronized clocks (like linearizable databases).
-- Design the library to enable applications to implement Spanner's TrueTime-like functionality (Commit Windows?) (Checkout [CockroachDB](https://www.cockroachlabs.com/blog/living-without-atomic-clocks)) i.e communicate upper bound on wall-clock time synchronization. 
+- Design the library to enable applications to implement Spanner's TrueTime-like functionality (Commit Windows?) (Checkout [CockroachDB](https://www.cockroachlabs.com/blog/living-without-atomic-clocks)) i.e communicate upper bound on time uncertainty. 
 
 ## References
 
