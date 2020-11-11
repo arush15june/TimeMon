@@ -1,0 +1,29 @@
+syntax = "proto3";
+package timeservice;
+import "google/protobuf/timestamp.proto";
+option go_package = "pkg/timeservice";
+
+// TimeService service definition.
+service TimeService {
+  // Send current wall clock time.
+  rpc SendClock (ClockRequest) returns (ClockReply) {}
+}
+
+// Request for sending current clock time.
+message ClockRequest {
+  google.protobuf.Timestamp CurrTime = 1;
+  uint64 MsgId = 2;
+}
+
+enum Response {
+  SUCCESS = 0;
+  FAILURE = 1;
+  ERROR = 2;
+}
+
+// Response to a clock request.
+message ClockReply {
+  uint64 MsgId = 1;
+  Response resp = 2;
+  string errMsg = 3;
+}
