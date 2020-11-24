@@ -24,19 +24,21 @@ resource "aws_security_group" "allow_all" {
 resource "aws_instance" "coordinator" {
   ami = "ami-0a4a70bd98c6d6441"
   instance_type = "t2.micro"
-  key_name = "EC2_ROOT"
+  key_name = "AARUSH_LAPTOP"
   
   vpc_security_group_ids = [aws_security_group.allow_all.id]
   
   provisioner "remote-exec" {
     inline = [
-      "wget https://github.com/arush15june/TimeMon/releases/download/v0.1/coordinator",
+      "wget https://github.com/arush15june/TimeMon/releases/download/v0.1/coordinator && chmod +x coordinator",
+      "nohup ./coordinator &",
+      "sleep 1"
     ]
     
     connection {
       type     = "ssh"
       user     = "ubuntu"
-      private_key = file("E:/Keystore/SSHKeys/EC2_ROOT.pem")
+      private_key = file("C:/Users/arush/.ssh/id_rsa")
       host     = self.public_ip
     }
   }
@@ -51,19 +53,35 @@ resource "aws_instance" "follower" {
   
   ami = "ami-0a4a70bd98c6d6441"
   instance_type = "t2.micro"
-  key_name = "EC2_ROOT"
+  key_name = "AARUSH_LAPTOP"
   
   vpc_security_group_ids = [aws_security_group.allow_all.id]
   
+  provisioner "file" {
+    source = "start-follower.sh"
+    destination = "/home/ubuntu/start-follower.sh"
+
+    connection {
+      type     = "ssh"
+      user     = "ubuntu"
+      private_key = file("C:/Users/arush/.ssh/id_rsa")
+      host     = self.public_ip
+    }
+  }
+  
   provisioner "remote-exec" {
     inline = [
-      "wget https://github.com/arush15june/TimeMon/releases/download/v0.1/follower",
+      "wget https://github.com/arush15june/TimeMon/releases/download/v0.1/follower && chmod +x follower",
+      "echo ${self.tags.name} > follower.label",
+      "echo ${aws_instance.coordinator.private_ip}:3530 > coordinator.address",
+      "chmod +x ./start-follower.sh && ./start-follower.sh",
+      "sleep 1"
     ]
     
     connection {
       type     = "ssh"
       user     = "ubuntu"
-      private_key = file("E:/Keystore/SSHKeys/EC2_ROOT.pem")
+      private_key = file("C:/Users/arush/.ssh/id_rsa")
       host     = self.public_ip
     }
   }
@@ -71,6 +89,10 @@ resource "aws_instance" "follower" {
   tags = { 
     name = "follower-${count.index}"
   }
+
+  depends_on = [
+    aws_instance.coordinator
+  ]
 }
 
 output "coordinator_public_ip" {
