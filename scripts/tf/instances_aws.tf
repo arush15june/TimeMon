@@ -30,7 +30,7 @@ resource "aws_instance" "coordinator" {
   
   provisioner "remote-exec" {
     inline = [
-      "git clone https://github.com/arush15june/TimeMon.git",
+      "wget https://github.com/arush15june/TimeMon/releases/download/v0.1/coordinator",
     ]
     
     connection {
@@ -57,7 +57,7 @@ resource "aws_instance" "follower" {
   
   provisioner "remote-exec" {
     inline = [
-      "git clone https://github.com/arush15june/TimeMon.git",
+      "wget https://github.com/arush15june/TimeMon/releases/download/v0.1/follower",
     ]
     
     connection {
@@ -73,11 +73,19 @@ resource "aws_instance" "follower" {
   }
 }
 
-output "coordinator_ip" {
+output "coordinator_public_ip" {
   value = aws_instance.coordinator.public_ip
 }
 
-output "follower_ips" {
+output "coordinator_private_ip" {
+  value = aws_instance.coordinator.private_ip
+}
+
+output "follower_public_ips" {
   value = ["${aws_instance.follower.*.public_ip}"]
+}
+
+output "follower_private_ips" {
+  value = ["${aws_instance.follower.*.private_ip}"]
 }
 
