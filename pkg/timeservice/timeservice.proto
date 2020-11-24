@@ -13,6 +13,7 @@ service TimeService {
 message ClockRequest {
   google.protobuf.Timestamp CurrTime = 1;
   uint64 MsgId = 2;
+  uint64 latency = 3;
 }
 
 enum Response {

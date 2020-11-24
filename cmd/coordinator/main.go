@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"net"
 	"time"
 
@@ -24,17 +25,20 @@ func (s *CoordinationServer) SendClock(ctx context.Context, in *timeservice.Cloc
 	callerTime, _ := ptypes.Timestamp(in.GetCurrTime())
 
 	log.WithFields(log.Fields{
-		"caller":   callerAddr,
-		"callerTs": callerTime.UnixNano(),
-		"msgId":    in.GetMsgId(),
-		"ts":       time.Now().UnixNano(),
+		"caller":       callerAddr,
+		"callerTs":     callerTime.UnixNano(),
+		"msgId":        in.GetMsgId(),
+		"ts":           time.Now().UnixNano(),
+		"prev_latency": in.GetLatency(),
+		"label":        label,
 	}).Info()
 
 	return &timeservice.ClockReply{Resp: timeservice.Response_SUCCESS, MsgId: in.GetMsgId()}, nil
 }
 
 var (
-	port string = ":3530"
+	listenAddr string
+	label      string
 )
 
 func main() {
@@ -42,7 +46,12 @@ func main() {
 		TimestampFormat: time.RFC3339Nano,
 	})
 
-	lis, err := net.Listen("tcp", port)
+	flag.StringVar(&listenAddr, "listenAddr", ":3530", "coordinator listen address")
+	flag.StringVar(&label, "label", "coordinator", "coordinator label")
+
+	flag.Parse()
+
+	lis, err := net.Listen("tcp", listenAddr)
 
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
