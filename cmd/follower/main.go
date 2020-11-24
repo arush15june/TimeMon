@@ -19,6 +19,7 @@ var (
 
 	coordinatorAddr string
 	label           string
+	followerTime    time.Duration
 )
 
 func main() {
@@ -28,6 +29,7 @@ func main() {
 
 	flag.StringVar(&coordinatorAddr, "coordinator", "127.0.0.1:3530", "Coordinator to connect to")
 	flag.StringVar(&label, "label", "follower", "Follower label")
+	flag.DurationVar(&followerTime, "time", 1*time.Minute, "Run follower for fixed time")
 
 	flag.Parse()
 
@@ -39,7 +41,7 @@ func main() {
 
 	c := timeservice.NewTimeServiceClient(conn)
 
-	for {
+	for start := time.Now(); time.Since(start) < followerTime; {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
@@ -53,9 +55,9 @@ func main() {
 			"label":    label,
 		}).Info()
 
-		start := time.Now()
+		startLatency := time.Now()
 		r, err := c.SendClock(ctx, &timeservice.ClockRequest{CurrTime: tsProto, MsgId: msgID, Latency: latency})
-		latency = uint64(time.Now().Sub(start).Nanoseconds())
+		latency = uint64(time.Now().Sub(startLatency).Nanoseconds())
 
 		if err != nil {
 			log.Infof("SendClock timeout: %v", err)
