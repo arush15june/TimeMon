@@ -56,7 +56,7 @@ func main() {
 		}).Info()
 
 		startLatency := time.Now()
-		r, err := c.SendClock(ctx, &timeservice.ClockRequest{CurrTime: tsProto, MsgId: msgID, Latency: latency})
+		r, err := c.SendClock(ctx, &timeservice.ClockRequest{CurrTime: tsProto, MsgId: msgID, Latency: latency, Label: label})
 		latency = uint64(time.Now().Sub(startLatency).Nanoseconds())
 
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"flag"
 	"net"
+	"sync/atomic"
 	"time"
 
 	"github.com/arush15june/TimeMon/pkg/timeservice"
@@ -24,13 +25,28 @@ func (s *CoordinationServer) SendClock(ctx context.Context, in *timeservice.Cloc
 
 	callerTime, _ := ptypes.Timestamp(in.GetCurrTime())
 
+	followerLabel := in.GetLabel()
+
+	if followerLabel == "follower-1" {
+		atomic.StoreInt64(&followerOneTimeStamp, callerTime.UnixNano())
+		atomic.StoreUint64(&followerOneLatency, in.GetLatency())
+	} else if followerLabel == "follower-2" {
+		atomic.StoreInt64(&followerTwoTimeStamp, callerTime.UnixNano())
+		atomic.StoreUint64(&followerTwoLatency, in.GetLatency())
+	}
+
 	log.WithFields(log.Fields{
-		"caller":       callerAddr,
-		"callerTs":     callerTime.UnixNano(),
-		"msgId":        in.GetMsgId(),
-		"ts":           time.Now().UnixNano(),
-		"prev_latency": in.GetLatency(),
-		"label":        label,
+		"caller":        callerAddr,
+		"callerTs":      callerTime.UnixNano(),
+		"msgId":         in.GetMsgId(),
+		"ts":            time.Now().UnixNano(),
+		"f1_ts":         followerOneTimeStamp,
+		"f2_ts":         followerTwoTimeStamp,
+		"f1_latency":    followerOneLatency,
+		"f2_latency":    followerTwoLatency,
+		"prev_latency":  in.GetLatency(),
+		"followerLabel": followerLabel,
+		"label":         label,
 	}).Info()
 
 	return &timeservice.ClockReply{Resp: timeservice.Response_SUCCESS, MsgId: in.GetMsgId()}, nil
@@ -39,6 +55,12 @@ func (s *CoordinationServer) SendClock(ctx context.Context, in *timeservice.Cloc
 var (
 	listenAddr string
 	label      string
+
+	followerOneTimeStamp int64 = 0
+	followerTwoTimeStamp int64 = 0
+
+	followerOneLatency uint64 = 0
+	followerTwoLatency uint64 = 0
 )
 
 func main() {
