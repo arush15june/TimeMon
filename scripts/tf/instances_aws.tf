@@ -87,7 +87,7 @@ resource "aws_instance" "follower" {
   }
   
   tags = { 
-    name = "follower-${count.index}"
+    name = "follower-${count.index+1}"
   }
 
   depends_on = [
